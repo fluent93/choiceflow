@@ -120,11 +120,17 @@ app.get('*', (req, res) => {
     res.sendFile(path.join(__dirname, 'index.html'));
 });
 
-app.listen(PORT, () => {
-    console.log(`ChoiceFlow server running at http://localhost:${PORT}`);
-    if (process.env.GEMINI_API_KEY) {
-        console.log('Gemini API key configured and ready.');
-    } else {
-        console.log('WARNING: GEMINI_API_KEY env variable is not set. Server proxy will fall back to local engines.');
-    }
-});
+// Export app for serverless deployment on platforms like Vercel
+module.exports = app;
+
+// Listen only when run locally (not in serverless environments)
+if (require.main === module) {
+    app.listen(PORT, () => {
+        console.log(`ChoiceFlow server running at http://localhost:${PORT}`);
+        if (process.env.GEMINI_API_KEY) {
+            console.log('Gemini API key configured and ready.');
+        } else {
+            console.log('WARNING: GEMINI_API_KEY env variable is not set. Server proxy will fall back to local engines.');
+        }
+    });
+}
