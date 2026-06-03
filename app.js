@@ -343,12 +343,6 @@ const el = {
     
     btnRestart: document.getElementById('btn-restart'),
     btnExport: document.getElementById('btn-export'),
-    
-    modalApi: document.getElementById('modal-api'),
-    btnApiSettings: document.getElementById('btn-api-settings'),
-    btnCloseModal: document.getElementById('btn-close-modal'),
-    btnSaveApi: document.getElementById('btn-save-api'),
-    inputApiKey: document.getElementById('input-api-key'),
     presetsContainer: document.getElementById('presets-container')
 };
 
@@ -356,9 +350,6 @@ const el = {
 window.addEventListener('DOMContentLoaded', async () => {
     setupEventListeners();
     setLanguage(STATE.lang); // Triggers initial render
-    if (STATE.geminiApiKey) {
-        el.inputApiKey.value = STATE.geminiApiKey;
-    }
     await checkAiCapabilities();
 });
 
@@ -400,22 +391,6 @@ function setupEventListeners() {
     // Dashboard actions
     el.btnRestart.addEventListener('click', restartApp);
     el.btnExport.addEventListener('click', () => window.print());
-
-    // API Modal Controls
-    el.btnApiSettings.addEventListener('click', () => {
-        el.modalApi.classList.add('active');
-    });
-    el.btnCloseModal.addEventListener('click', () => {
-        el.modalApi.classList.remove('active');
-    });
-    el.btnSaveApi.addEventListener('click', () => {
-        const key = el.inputApiKey.value.trim();
-        STATE.geminiApiKey = key;
-        localStorage.setItem('gemini_api_key', key);
-        el.modalApi.classList.remove('active');
-        updateEngineStatusUI();
-        alert(STATE.lang === 'ko' ? 'API 키가 저장되었습니다.' : 'API Key saved successfully.');
-    });
 }
 
 // Translations Helper Function
@@ -915,15 +890,9 @@ async function calculateAndShowResults() {
     renderTable();
 
     // 5. Generate AI Verdict (Real or Simulated) based on priorities
-    if (STATE.geminiApiKey) {
-        // Option 1: Custom User API Key Override
-        el.verdictApiStatus.textContent = 'User API Key Override';
-        el.verdictApiStatus.style.backgroundColor = 'rgba(245, 158, 11, 0.2)';
-        el.verdictApiStatus.style.color = '#fde047';
-        await fetchGeminiVerdict(finalScores, winner);
-    } else if (STATE.serverKeyAvailable) {
-        // Option 2: Server API Proxy
-        el.verdictApiStatus.textContent = 'Cloud Server API';
+    if (STATE.serverKeyAvailable) {
+        // Option 1: Server API Proxy with Llama 3.3 (Groq)
+        el.verdictApiStatus.textContent = 'Llama 3.3 (Groq)';
         el.verdictApiStatus.style.backgroundColor = 'rgba(16, 185, 129, 0.2)';
         el.verdictApiStatus.style.color = '#6ee7b7';
         await fetchServerVerdict(finalScores, winner);
