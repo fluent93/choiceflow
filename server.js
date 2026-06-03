@@ -11,10 +11,10 @@ app.use(express.json());
 // Serve static files from the current folder
 app.use(express.static(__dirname));
 
-// Route to check if server-side Gemini API key is configured
+// Route to check if server-side Groq API key is configured
 app.get('/api/config', (req, res) => {
     res.json({
-        serverKeyAvailable: !!process.env.GEMINI_API_KEY
+        serverKeyAvailable: !!process.env.GROQ_API_KEY
     });
 });
 
@@ -22,11 +22,11 @@ app.get('/api/config', (req, res) => {
 let dailyRequestCount = 0;
 let lastResetDate = new Date().toDateString();
 
-// Route to proxy Gemini API analysis requests
+// Route to proxy Groq API analysis requests
 app.post('/api/analyze', async (req, res) => {
-    const apiKey = process.env.GEMINI_API_KEY;
+    const apiKey = process.env.GROQ_API_KEY;
     if (!apiKey) {
-        return res.status(500).json({ error: 'Server-side Gemini API key is not configured.' });
+        return res.status(500).json({ error: 'Server-side Groq API key is not configured.' });
     }
 
     // 1. Reset daily request limit if date has changed
@@ -61,32 +61,32 @@ Please output your analysis in the following strict JSON format, containing no o
 
         const userPrompt = `Input Data: ${JSON.stringify(payload)}`;
 
-        const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`, {
+        const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
             method: 'POST',
             headers: {
+                'Authorization': `Bearer ${apiKey}`,
                 'Content-Type': 'application/json'
             },
             body: JSON.stringify({
-                contents: [{
-                    parts: [{
-                        text: `${systemPrompt}\n\n${userPrompt}`
-                    }]
-                }],
-                generationConfig: {
-                    responseMimeType: "application/json"
-                }
+                model: 'llama-3.1-8b-instant',
+                messages: [
+                    { role: 'system', content: systemPrompt },
+                    { role: 'user', content: userPrompt }
+                ],
+                temperature: 0.3,
+                response_format: { type: 'json_object' }
             })
         });
 
         if (!response.ok) {
             const errText = await response.text();
-            throw new Error(`Gemini API responded with status ${response.status}: ${errText}`);
+            throw new Error(`Groq API responded with status ${response.status}: ${errText}`);
         }
 
         const data = await response.json();
-        const jsonText = data.candidates[0].content.parts[0].text;
+        const jsonText = data.choices[0].message.content;
         
-        // Clean JSON text in case Gemini wraps it in markdown blocks
+        // Clean JSON text in case Groq wraps it in markdown blocks
         const cleanedText = cleanJsonString(jsonText);
         const result = JSON.parse(cleanedText);
 
@@ -96,7 +96,7 @@ Please output your analysis in the following strict JSON format, containing no o
         res.json(result);
 
     } catch (err) {
-        console.error('Error during Gemini API analysis:', err.message);
+        console.error('Error during Groq API analysis:', err.message);
         res.status(500).json({ error: 'Failed to process AI analysis: ' + err.message });
     }
 });
@@ -127,10 +127,10 @@ module.exports = app;
 if (require.main === module) {
     app.listen(PORT, () => {
         console.log(`ChoiceFlow server running at http://localhost:${PORT}`);
-        if (process.env.GEMINI_API_KEY) {
-            console.log('Gemini API key configured and ready.');
+        if (process.env.GROQ_API_KEY) {
+            console.log('Groq API key configured and ready for Gemma 2.');
         } else {
-            console.log('WARNING: GEMINI_API_KEY env variable is not set. Server proxy will fall back to local engines.');
+            console.log('WARNING: GROQ_API_KEY env variable is not set. Server proxy will fall back to local engines.');
         }
     });
 }
