@@ -11,7 +11,9 @@ const STATE = {
     scores: {}, // Format: { "비용": { "선택지 A": 7, "선택지 B": 5 } }
     currentStep: 1,
     chatAnswers: {},
-    geminiApiKey: localStorage.getItem('gemini_api_key') || ''
+    geminiApiKey: localStorage.getItem('gemini_api_key') || '',
+    serverKeyAvailable: false,
+    localAiAvailable: false
 };
 
 // Multilingual Dictionary
@@ -23,6 +25,14 @@ const TRANSLATIONS = {
         dilemmaPrompt: "어떤 고민을 하고 계신가요?",
         dilemmaPlaceholder: "예: 이번 휴가지는 어디로 갈까? / 이직을 할까 말까?",
         btnStart: "시작하기",
+        settingsTitle: "환경 설정",
+        engineStatusTitle: "활성 AI 엔진 상태",
+        engineStatusServerActive: "서버 API: 연결됨 (인증키 불필요)",
+        engineStatusServerInactive: "서버 API: 환경변수 미등록 (미사용)",
+        engineStatusLocalActive: "내장 AI (Gemini Nano): 사용 가능",
+        engineStatusLocalInactive: "내장 AI (Gemini Nano): 미지원",
+        engineStatusUserActive: "수동 인증키: 오버라이드 활성",
+        engineStatusUserInactive: "수동 인증키: 미설정",
         presetsTitle: "자주 하는 고민 템플릿",
         stepLabel1: "선택지 입력",
         stepLabel2: "기준 설정",
@@ -150,7 +160,15 @@ const TRANSLATIONS = {
         
         actionItem1: "Spend 24 hours researching details optimized specifically for [{name}].",
         actionItem2: "Accept and embrace the opportunity cost of choosing [{name}].",
-        actionItem3: "Share this visual report with a colleague or mentor to validate your logic."
+        actionItem3: "Share this visual report with a colleague or mentor to validate your logic.",
+        settingsTitle: "Settings",
+        engineStatusTitle: "Active AI Engine Status",
+        engineStatusServerActive: "Server API: Connected (No key needed)",
+        engineStatusServerInactive: "Server API: Not Configured (Unused)",
+        engineStatusLocalActive: "On-Device AI (Gemini Nano): Available",
+        engineStatusLocalInactive: "On-Device AI (Gemini Nano): Not Supported",
+        engineStatusUserActive: "Custom Key: Override Active",
+        engineStatusUserInactive: "Custom Key: Not Configured",
     }
 };
 
@@ -335,12 +353,13 @@ const el = {
 };
 
 // Initialize Application
-window.addEventListener('DOMContentLoaded', () => {
+window.addEventListener('DOMContentLoaded', async () => {
     setupEventListeners();
     setLanguage(STATE.lang); // Triggers initial render
     if (STATE.geminiApiKey) {
         el.inputApiKey.value = STATE.geminiApiKey;
     }
+    await checkAiCapabilities();
 });
 
 // Setup Event Listeners
@@ -394,6 +413,7 @@ function setupEventListeners() {
         STATE.geminiApiKey = key;
         localStorage.setItem('gemini_api_key', key);
         el.modalApi.classList.remove('active');
+        updateEngineStatusUI();
         alert(STATE.lang === 'ko' ? 'API 키가 저장되었습니다.' : 'API Key saved successfully.');
     });
 }
@@ -446,6 +466,7 @@ function setLanguage(lang) {
         el.wizardDilemmaTitle.textContent = `Q. ${STATE.dilemma}`;
         renderStep();
     }
+    updateEngineStatusUI();
 }
 
 // Render landing page presets
@@ -893,13 +914,27 @@ async function calculateAndShowResults() {
     // 4. Render Table breakdown
     renderTable();
 
-    // 5. Generate AI Verdict (Real or Simulated)
+    // 5. Generate AI Verdict (Real or Simulated) based on priorities
     if (STATE.geminiApiKey) {
-        el.verdictApiStatus.textContent = 'Gemini API Connected';
+        // Option 1: Custom User API Key Override
+        el.verdictApiStatus.textContent = 'User API Key Override';
+        el.verdictApiStatus.style.backgroundColor = 'rgba(245, 158, 11, 0.2)';
+        el.verdictApiStatus.style.color = '#fde047';
+        await fetchGeminiVerdict(finalScores, winner);
+    } else if (STATE.serverKeyAvailable) {
+        // Option 2: Server API Proxy
+        el.verdictApiStatus.textContent = 'Cloud Server API';
+        el.verdictApiStatus.style.backgroundColor = 'rgba(16, 185, 129, 0.2)';
+        el.verdictApiStatus.style.color = '#6ee7b7';
+        await fetchServerVerdict(finalScores, winner);
+    } else if (STATE.localAiAvailable) {
+        // Option 3: Local Gemini Nano in Browser
+        el.verdictApiStatus.textContent = 'On-Device AI (Nano)';
         el.verdictApiStatus.style.backgroundColor = 'rgba(59, 130, 246, 0.2)';
         el.verdictApiStatus.style.color = '#93c5fd';
-        await fetchGeminiVerdict(finalScores, winner);
+        await fetchLocalAiVerdict(finalScores, winner);
     } else {
+        // Option 4: Local Simulation Fallback
         el.verdictApiStatus.textContent = 'Simulated Engine';
         el.verdictApiStatus.style.backgroundColor = 'rgba(255, 255, 255, 0.05)';
         el.verdictApiStatus.style.color = 'var(--text-secondary)';
@@ -1080,7 +1115,8 @@ Please output your analysis in the following strict JSON format, containing no o
 
         const data = await response.json();
         const jsonText = data.candidates[0].content.parts[0].text;
-        const res = JSON.parse(jsonText);
+        const cleanedText = cleanJsonString(jsonText);
+        const res = JSON.parse(cleanedText);
 
         el.verdictSummary.textContent = res.summary;
         el.biasAlert.innerHTML = `<strong>${res.biasName}</strong>: ${res.biasDesc}`;
@@ -1130,4 +1166,232 @@ function restartApp() {
     }
 
     switchView('landing');
+}
+
+// ----------------------------------------------------
+// ChoiceFlow AI Engine Extension Methods
+// ----------------------------------------------------
+
+// Check the available AI capabilities of the environment
+async function checkAiCapabilities() {
+    // 1. Check server key availability
+    try {
+        const res = await fetch('/api/config');
+        if (res.ok) {
+            const data = await res.json();
+            STATE.serverKeyAvailable = !!data.serverKeyAvailable;
+        }
+    } catch (e) {
+        console.warn('Backend server config check failed, assuming offline/client-only mode.');
+        STATE.serverKeyAvailable = false;
+    }
+
+    // 2. Check local Gemini Nano support (Chrome Prompt API)
+    try {
+        if (window.ai && window.ai.languageModel) {
+            const capabilities = await window.ai.languageModel.capabilities();
+            if (capabilities.available === 'readily' || capabilities.available === 'after-download') {
+                STATE.localAiAvailable = true;
+            }
+        }
+    } catch (e) {
+        console.warn('Chrome Built-in AI check failed or not supported in this browser.');
+        STATE.localAiAvailable = false;
+    }
+
+    updateEngineStatusUI();
+}
+
+// Update the visual status badges inside the settings modal
+function updateEngineStatusUI() {
+    const serverBadge = document.getElementById('engine-badge-server');
+    const localBadge = document.getElementById('engine-badge-local');
+    const userBadge = document.getElementById('engine-badge-user');
+
+    if (!serverBadge || !localBadge || !userBadge) return;
+
+    // 1. Server Badge
+    if (STATE.serverKeyAvailable) {
+        serverBadge.className = 'engine-badge badge-green';
+        serverBadge.querySelector('span').textContent = t('engineStatusServerActive');
+    } else {
+        serverBadge.className = 'engine-badge badge-gray';
+        serverBadge.querySelector('span').textContent = t('engineStatusServerInactive');
+    }
+
+    // 2. Local Gemini Nano Badge
+    if (STATE.localAiAvailable) {
+        localBadge.className = 'engine-badge badge-blue';
+        localBadge.querySelector('span').textContent = t('engineStatusLocalActive');
+    } else {
+        localBadge.className = 'engine-badge badge-gray';
+        localBadge.querySelector('span').textContent = t('engineStatusLocalInactive');
+    }
+
+    // 3. User custom key Badge
+    if (STATE.geminiApiKey) {
+        userBadge.className = 'engine-badge badge-gold';
+        userBadge.querySelector('span').textContent = t('engineStatusUserActive');
+    } else {
+        userBadge.className = 'engine-badge badge-gray';
+        userBadge.querySelector('span').textContent = t('engineStatusUserInactive');
+    }
+}
+
+// Fetch verdict from server-side AI proxy
+async function fetchServerVerdict(finalScores, winner) {
+    el.winnerBox.innerHTML = `
+        <i class="fa-solid fa-server winner-icon"></i>
+        <div class="winner-details">
+            <h5>${t('aiWinnerTitle')}</h5>
+            <div class="winner-name">${winner}</div>
+        </div>
+    `;
+
+    try {
+        const payload = {
+            dilemma: STATE.dilemma,
+            options: STATE.options,
+            criteria: STATE.criteria,
+            scores: STATE.scores,
+            finalScores: finalScores,
+            winner: winner,
+            chatAnswers: STATE.chatAnswers,
+            language: STATE.lang === 'ko' ? 'Korean' : 'English'
+        };
+
+        const response = await fetch('/api/analyze', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(payload)
+        });
+
+        if (!response.ok) {
+            const errData = await response.json().catch(() => ({}));
+            if (response.status === 429 && errData.error === 'quota_exceeded') {
+                throw new Error('quota_exceeded');
+            }
+            throw new Error('Server proxy request failed');
+        }
+
+        const res = await response.json();
+
+        el.verdictSummary.textContent = res.summary;
+        el.biasAlert.innerHTML = `<strong>${res.biasName}</strong>: ${res.biasDesc}`;
+        
+        el.actionList.innerHTML = '';
+        res.actions.forEach(action => {
+            const li = document.createElement('li');
+            li.innerHTML = `<i class="fa-solid fa-circle-check"></i> <span>${action}</span>`;
+            el.actionList.appendChild(li);
+        });
+
+    } catch (err) {
+        console.error('Server Proxy Error, falling back to local systems:', err);
+        
+        if (err.message === 'quota_exceeded') {
+            const msg = STATE.lang === 'ko'
+                ? '서버 일일 AI 사용량 한도가 소진되었습니다. 계속해서 실시간 AI 조언을 듣고 싶으시면 설정(톱니바퀴)에서 개인 API 키를 등록하여 이용해 주세요. (미등록 시 로컬 시뮬레이션으로 작동합니다.)'
+                : 'Server daily AI limit reached. Please configure your own Gemini API key in the settings (top-right gear) to continue using live AI analysis.';
+            alert(msg);
+        }
+
+        // Fallback to local AI if available, otherwise simulation
+        if (STATE.localAiAvailable) {
+            el.verdictApiStatus.textContent = 'Server Limit (Fallback to Local AI)';
+            el.verdictApiStatus.style.backgroundColor = 'rgba(245, 158, 11, 0.2)';
+            el.verdictApiStatus.style.color = '#fde047';
+            await fetchLocalAiVerdict(finalScores, winner);
+        } else {
+            el.verdictApiStatus.textContent = 'Server Limit (Simulated Fallback)';
+            el.verdictApiStatus.style.backgroundColor = 'rgba(239, 68, 68, 0.15)';
+            el.verdictApiStatus.style.color = '#fca5a5';
+            generateSimulatedVerdict(finalScores, winner);
+        }
+    }
+}
+
+// Fetch verdict from client-side Chrome Built-in AI (Gemini Nano)
+async function fetchLocalAiVerdict(finalScores, winner) {
+    el.winnerBox.innerHTML = `
+        <i class="fa-solid fa-microchip winner-icon"></i>
+        <div class="winner-details">
+            <h5>${t('aiWinnerTitle')}</h5>
+            <div class="winner-name">${winner}</div>
+        </div>
+    `;
+
+    try {
+        const payload = {
+            dilemma: STATE.dilemma,
+            options: STATE.options,
+            criteria: STATE.criteria,
+            scores: STATE.scores,
+            finalScores: finalScores,
+            winner: winner,
+            chatAnswers: STATE.chatAnswers,
+            language: STATE.lang === 'ko' ? 'Korean' : 'English'
+        };
+
+        const systemPrompt = `You are an expert AI consulting assistant specialized in human decision psychology.
+Analyze the user's dilemma, options, criteria scores, weights, and interview answers, and provide an insightful final recommendation report.
+CRITICAL: You must write the report in ${payload.language}.
+
+Please output your analysis in the following strict JSON format, containing no other text:
+{
+  "summary": "Detailed final analysis text explaining why the winner is optimal based on the weights.",
+  "biasName": "Name of the cognitive bias warning relevant to this decision",
+  "biasDesc": "Explanation of the cognitive bias and psychological guidance.",
+  "actions": ["Action item 1", "Action item 2", "Action item 3"]
+}`;
+
+        const userPrompt = `Input Data: ${JSON.stringify(payload)}`;
+
+        // Create Gemini Nano session in browser
+        const session = await window.ai.languageModel.create({
+            systemPrompt: systemPrompt
+        });
+
+        const rawResponse = await session.prompt(userPrompt);
+        
+        // Clean JSON text (sometimes Gemini Nano adds markdown code blocks)
+        const cleanText = cleanJsonString(rawResponse);
+        const res = JSON.parse(cleanText);
+
+        el.verdictSummary.textContent = res.summary;
+        el.biasAlert.innerHTML = `<strong>${res.biasName}</strong>: ${res.biasDesc}`;
+        
+        el.actionList.innerHTML = '';
+        res.actions.forEach(action => {
+            const li = document.createElement('li');
+            li.innerHTML = `<i class="fa-solid fa-circle-check"></i> <span>${action}</span>`;
+            el.actionList.appendChild(li);
+        });
+
+        // Destroy session to release memory
+        session.destroy();
+
+    } catch (err) {
+        console.error('Chrome On-Device AI Error, falling back to simulated engine:', err);
+        el.verdictApiStatus.textContent = 'Local AI Error (Fallback Activated)';
+        el.verdictApiStatus.style.backgroundColor = 'rgba(239, 68, 68, 0.15)';
+        el.verdictApiStatus.style.color = '#fca5a5';
+        generateSimulatedVerdict(finalScores, winner);
+    }
+}
+
+// Clean JSON code blocks wrapper from API response strings
+function cleanJsonString(text) {
+    let clean = text.trim();
+    if (clean.startsWith("```json")) {
+        clean = clean.substring(7);
+    } else if (clean.startsWith("```")) {
+        clean = clean.substring(3);
+    }
+    if (clean.endsWith("```")) {
+        clean = clean.substring(0, clean.length - 3);
+    }
+    return clean.trim();
 }

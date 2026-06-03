@@ -235,10 +235,22 @@
         <div id="modal-api" class="modal-overlay">
             <div class="modal card">
                 <div class="modal-header">
-                    <h3><i class="fa-solid fa-gear"></i> API Key Settings</h3>
+                    <h3><i class="fa-solid fa-gear"></i> <span data-i18n="settingsTitle">환경 설정</span></h3>
                     <button id="btn-close-modal" class="close-btn">&times;</button>
                 </div>
                 <div class="modal-body">
+                    <!-- AI Engine Status Block -->
+                    <div class="settings-section">
+                        <h4 class="settings-section-title"><i class="fa-solid fa-microchip"></i> <span data-i18n="engineStatusTitle">활성 AI 엔진 상태</span></h4>
+                        <div id="engine-status-container" class="engine-status-container">
+                            <div class="engine-badge badge-gray" id="engine-badge-server"><i class="fa-solid fa-server"></i> <span>Server API: Checking...</span></div>
+                            <div class="engine-badge badge-gray" id="engine-badge-local"><i class="fa-solid fa-microchip"></i> <span>On-Device AI: Checking...</span></div>
+                            <div class="engine-badge badge-gray" id="engine-badge-user"><i class="fa-solid fa-key"></i> <span>Custom Key: Checking...</span></div>
+                        </div>
+                    </div>
+                    
+                    <div class="settings-divider"></div>
+
                     <p class="modal-desc" data-i18n="apiDesc">실제 실시간 AI 맞춤형 처방을 받기 원하시면 Gemini API 키를 등록하세요. 키는 브라우저의 로컬 스토리지에만 안전하게 보관됩니다.</p>
                     <div class="form-group">
                         <label for="input-api-key" data-i18n="apiKeyLabel">Gemini API Key</label>

@@ -1004,6 +1004,68 @@ button {
     margin-top: 20px;
 }
 
+/* Custom Settings Modal additions */
+.settings-section {
+    margin-bottom: 20px;
+}
+
+.settings-section-title {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.settings-divider {
+    height: 1px;
+    background-color: var(--border-color);
+    margin: 20px 0;
+}
+
+.engine-status-container {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.engine-badge {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 14px;
+    border-radius: var(--radius-sm);
+    font-size: 0.85rem;
+    font-weight: 500;
+    border: 1px solid transparent;
+}
+
+.badge-gray {
+    background-color: rgba(255, 255, 255, 0.03);
+    border-color: var(--border-color);
+    color: var(--text-secondary);
+}
+
+.badge-green {
+    background-color: rgba(16, 185, 129, 0.1);
+    border-color: rgba(16, 185, 129, 0.25);
+    color: #6ee7b7;
+}
+
+.badge-blue {
+    background-color: rgba(59, 130, 246, 0.1);
+    border-color: rgba(59, 130, 246, 0.25);
+    color: #93c5fd;
+}
+
+.badge-gold {
+    background-color: rgba(245, 158, 11, 0.1);
+    border-color: rgba(245, 158, 11, 0.25);
+    color: #fde047;
+}
+
 /* Modal Settings styling */
 .modal-overlay {
     position: fixed;
