@@ -50,9 +50,18 @@
 
                 <div class="landing-card card">
                     <h2 class="card-title" data-i18n="dilemmaPrompt">어떤 고민을 하고 계신가요?</h2>
-                    <div class="input-group">
-                        <input type="text" id="input-dilemma" data-i18n-placeholder="dilemmaPlaceholder" placeholder="예: 이번 휴가지는 어디로 갈까? / 이직을 할까 말까?" autocomplete="off">
-                        <button id="btn-start" class="primary-btn"><span data-i18n="btnStart">시작하기</span> <i class="fa-solid fa-arrow-right"></i></button>
+                    <div class="dilemma-inputs">
+                        <div class="input-group" style="margin-bottom: 15px;">
+                            <input type="text" id="input-dilemma" data-i18n-placeholder="dilemmaPlaceholder" placeholder="예: 이번 휴가지는 어디로 갈까? / 이직을 할까 말까?" autocomplete="off">
+                        </div>
+                        <div class="context-group" id="context-group">
+                            <label for="input-context" class="context-label" data-i18n="contextLabel">고민의 상세 맥락 & 상황 설명 (선택사항)</label>
+                            <textarea id="input-context" data-i18n-placeholder="contextPlaceholder" placeholder="예: 연봉이 15% 많지만 왕복 3시간 통근인 스타트업으로 이직할지, 가깝고 편하지만 연봉이 정체된 대기업에 남을지 고민입니다. 내년에 결혼이 계획되어 있습니다." rows="3"></textarea>
+                        </div>
+                        <div class="start-actions">
+                            <button id="btn-start-manual" class="secondary-btn"><i class="fa-solid fa-sliders"></i> <span data-i18n="btnStartManual">직접 매트릭스 작성</span></button>
+                            <button id="btn-start-ai" class="primary-btn"><i class="fa-solid fa-wand-magic-sparkles"></i> <span data-i18n="btnStartAi">AI 초간편 분석 시작</span></button>
+                        </div>
                     </div>
                 </div>
 
@@ -60,6 +69,69 @@
                     <h3 data-i18n="presetsTitle">자주 하는 고민 템플릿</h3>
                     <div class="presets-grid" id="presets-container">
                         <!-- Dynamic preset cards loaded here in correct language -->
+                    </div>
+                </div>
+            </section>
+
+            <!-- AI Co-creation Chat Setup View -->
+            <section id="view-ai-chat-setup" class="view">
+                <div class="ai-setup-container">
+                    <!-- Left: Co-creation Chat Room -->
+                    <div class="ai-setup-chat-card card">
+                        <div class="ai-header">
+                            <div class="ai-avatar">
+                                <i class="fa-solid fa-wand-magic-sparkles"></i>
+                            </div>
+                            <div class="ai-title">
+                                <h3 data-i18n="coCreationTitle">AI 의사결정 공동 창작실</h3>
+                                <p class="ai-subtitle" data-i18n="coCreationSubtitle">더 깊이 있는 분석을 위해 AI 카운셀러와 대화하며 매트릭스를 다듬어 갑니다.</p>
+                            </div>
+                        </div>
+
+                        <div id="ai-setup-chat-messages" class="chat-messages" style="height: 350px;">
+                            <!-- AI questions and User answers -->
+                        </div>
+
+                        <div id="ai-setup-chat-loading" class="chat-loading hidden">
+                            <span class="dot"></span>
+                            <span class="dot"></span>
+                            <span class="dot"></span>
+                        </div>
+
+                        <div id="setup-quick-replies" class="chat-input-area" style="padding: 10px 0;">
+                            <!-- Dynamic quick replies -->
+                        </div>
+
+                        <div class="ai-setup-input-form" style="display: flex; gap: 8px; margin-top: 10px;">
+                            <input type="text" id="ai-setup-chat-text" placeholder="AI의 질문에 직접 답변을 입력하거나 제안해 보세요..." style="flex-grow: 1; background: rgba(255,255,255,0.05); border: 1px solid var(--border-color); border-radius: 4px; padding: 10px 14px; color: var(--text-primary); outline: none;" />
+                            <button id="btn-send-setup-chat" class="primary-btn"><i class="fa-solid fa-paper-plane"></i></button>
+                        </div>
+
+                        <div class="setup-actions" style="margin-top: 20px; display: flex; justify-content: space-between; align-items: center;">
+                            <button id="btn-skip-setup" class="secondary-btn btn-sm"><i class="fa-solid fa-forward"></i> <span data-i18n="btnSkipSetup">대화 건너뛰고 바로 결과 보기</span></button>
+                            <button id="btn-go-dashboard" class="primary-btn btn-sm hidden"><span data-i18n="btnGoDashboard">최종 분석 결과 대시보드 보기</span> <i class="fa-solid fa-chart-line"></i></button>
+                        </div>
+                    </div>
+
+                    <!-- Right: Live Matrix Preview Card -->
+                    <div id="matrix-preview-card" class="card matrix-preview-card">
+                        <h3 data-i18n="matrixPreviewTitle"><i class="fa-solid fa-cube text-primary"></i> 실시간 매트릭스 프리뷰</h3>
+                        <p class="preview-desc" data-i18n="matrixPreviewDesc">AI와의 대화 맥락에 따라 실시간으로 비교 선택지 및 평가 기준이 구성되는 과정을 시각화합니다.</p>
+                        
+                        <div class="preview-content">
+                            <div class="preview-section">
+                                <h5><i class="fa-solid fa-list-check"></i> <span data-i18n="previewOptions">비교 선택지 (Options)</span></h5>
+                                <ul id="preview-options-list" class="preview-list">
+                                    <!-- Dynamic options list -->
+                                </ul>
+                            </div>
+                            <div class="preview-section" style="margin-top: 20px;">
+                                <h5><i class="fa-solid fa-sliders"></i> <span data-i18n="previewCriteria">평가 기준 및 가중치 (Criteria)</span></h5>
+                                <div id="preview-criteria-list" class="preview-criteria-list">
+                                    <!-- Dynamic criteria bars -->
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </section>
@@ -83,11 +155,6 @@
                             <div class="step-circle">3</div>
                             <span class="step-label" data-i18n="stepLabel3">점수 매기기</span>
                         </div>
-                        <div class="step-line"></div>
-                        <div class="step-indicator" data-step="4">
-                            <div class="step-circle">4</div>
-                            <span class="step-label" data-i18n="stepLabel4">가중치 튜닝</span>
-                        </div>
                     </div>
                     <div class="progress-bar">
                         <div class="progress-fill" style="width: 0%;"></div>
@@ -97,6 +164,10 @@
                 <!-- Wizard Content Area -->
                 <div class="wizard-card card">
                     <h2 id="wizard-dilemma-title" class="wizard-dilemma-title">고민 주제</h2>
+                    
+                    <div id="wizard-ai-badge" class="wizard-ai-badge hidden">
+                        <i class="fa-solid fa-circle-info"></i> <span data-i18n="aiDraftBadge">AI가 상황을 분석하여 옵션, 기준, 점수 초안을 작성했습니다. 원하는 대로 자유롭게 수정하세요.</span>
+                    </div>
 
                     <!-- Step 1: Options Entry -->
                     <div class="step-content active" data-step="1">
@@ -136,25 +207,6 @@
                         </div>
                     </div>
 
-                    <!-- Step 4: AI Weight Tuning -->
-                    <div class="step-content" data-step="4">
-                        <p class="step-desc" data-i18n="stepDesc4">AI와의 대화를 통해 무엇이 당신에게 가장 중요한 가치인지 파악하고 가중치를 최종 튜닝합니다.</p>
-                        
-                        <div class="chat-container">
-                            <div id="chat-messages" class="chat-messages">
-                                <!-- AI questions and User answers -->
-                            </div>
-                            <div id="chat-loading" class="chat-loading hidden">
-                                <span class="dot"></span>
-                                <span class="dot"></span>
-                                <span class="dot"></span>
-                            </div>
-                            <div id="chat-input-area" class="chat-input-area">
-                                <!-- Dynamic options for answers -->
-                            </div>
-                        </div>
-                    </div>
-
                     <!-- Wizard Navigation Buttons -->
                     <div class="wizard-nav">
                         <button id="btn-prev" class="secondary-btn hidden"><i class="fa-solid fa-arrow-left"></i> <span data-i18n="btnPrev">이전</span></button>
@@ -182,6 +234,9 @@
                                 <!-- Dynamic matrix breakdown table -->
                             </table>
                         </div>
+                        <div class="table-actions" style="margin-top: 15px; display: flex; gap: 10px; justify-content: flex-end;">
+                            <button id="btn-update-report" class="secondary-btn btn-sm"><i class="fa-solid fa-arrows-rotate"></i> <span data-i18n="btnUpdateReport">변경된 수치로 AI 보고서 업데이트</span></button>
+                        </div>
                     </div>
 
                     <!-- Column 2: AI Verdict & Feedback -->
@@ -207,6 +262,21 @@
                             <p id="verdict-summary">결과를 계산하는 중...</p>
                         </div>
 
+                        <!-- NEW: Detailed Criteria Analysis Section -->
+                        <div id="criteria-analysis-section" class="framework-box" style="margin-top: 20px;">
+                            <h4><i class="fa-solid fa-square-poll-horizontal"></i> <span data-i18n="criteriaAnalysisHeader">평가 기준별 심층 비교 분석</span></h4>
+                            <div id="criteria-analysis-list" class="criteria-analysis-list">
+                                <!-- Dynamic criteria detailed breakdown -->
+                            </div>
+                        </div>
+
+                        <!-- Decision Framework Analysis Box -->
+                        <div class="framework-box">
+                            <h4><i class="fa-solid fa-compass"></i> <span data-i18n="frameworkHeader">의사결정 프레임워크 분석</span></h4>
+                            <div id="framework-name" class="framework-name">분석 프레임워크</div>
+                            <p id="framework-analysis">전략 프레임워크를 기반으로 선택지를 입체적으로 분석합니다.</p>
+                        </div>
+
                         <!-- Cognitive Bias Warning -->
                         <div class="bias-warning-box">
                             <h4><i class="fa-solid fa-triangle-exclamation"></i> <span data-i18n="biasHeader">인지적 편향 경고 (Cognitive Bias Alert)</span></h4>
@@ -220,23 +290,59 @@
                                 <!-- Dynamic check items -->
                             </ul>
                         </div>
+
+                        <!-- AI Consultation Tip Box -->
+                        <div class="chat-tip-box" style="margin-top: 25px; padding: 14px 18px; background: rgba(147, 51, 234, 0.08); border: 1px dashed rgba(147, 51, 234, 0.35); border-radius: 8px; display: flex; align-items: center; gap: 12px; backdrop-filter: blur(5px);">
+                            <i class="fa-solid fa-lightbulb" style="color: #a855f7; font-size: 1.25rem;"></i>
+                            <p style="margin: 0; font-size: 0.88rem; color: var(--text-secondary); line-height: 1.45;">
+                                <span data-i18n="chatTipPrefix">분석 결과에 대해 궁금한 점이나 추가 문의가 있으시다면, 하단의</span>
+                                <strong data-i18n="btnOpenChat" style="color: #c084fc;">AI 1:1 상담</strong>
+                                <span data-i18n="chatTipSuffix">버튼을 통해 AI와 심층 대화를 나눠보세요!</span>
+                            </p>
+                        </div>
                     </div>
                 </div>
 
                 <!-- Dashboard Actions -->
                 <div class="dashboard-actions">
                     <button id="btn-restart" class="secondary-btn"><i class="fa-solid fa-rotate-left"></i> <span data-i18n="btnRestart">처음부터 다시하기</span></button>
+                    <button id="btn-open-chat" class="secondary-btn"><i class="fa-solid fa-comments"></i> <span data-i18n="btnOpenChat">AI 1:1 심층 상담</span></button>
                     <button id="btn-export" class="primary-btn"><i class="fa-solid fa-file-pdf"></i> <span data-i18n="btnExport">결과 인쇄 및 PDF 저장</span></button>
                 </div>
             </section>
         </main>
 
-
-
         <!-- Footer -->
         <footer class="app-footer">
             <p>&copy; 2026 ChoiceFlow. AI-Powered Decision Support Tool.</p>
         </footer>
+    </div>
+
+    <!-- Collapsible Chat Drawer -->
+    <div id="chat-drawer" class="chat-drawer">
+        <div class="chat-drawer-header">
+            <h3><i class="fa-solid fa-robot text-primary"></i> <span data-i18n="chatDrawerTitle">AI 1:1 심층 상담</span></h3>
+            <button id="btn-close-chat" class="close-btn"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+        <div class="chat-container">
+            <div id="chat-messages" class="chat-messages">
+                <!-- AI questions and User answers -->
+            </div>
+            <div id="chat-loading" class="chat-loading hidden">
+                <span class="dot"></span>
+                <span class="dot"></span>
+                <span class="dot"></span>
+            </div>
+            <div id="chat-input-area" class="chat-input-area">
+                <!-- Dynamic options for answers -->
+            </div>
+            
+            <!-- Standard text input for open-ended continuous consulting -->
+            <div class="chat-text-input-container" style="padding: 15px; border-top: 1px solid var(--border-color); display: flex; gap: 8px;">
+                <input type="text" id="chat-text-input" placeholder="결과에 대해 추가로 궁금한 점을 물어보세요..." style="flex-grow: 1; background: rgba(255,255,255,0.05); border: 1px solid var(--border-color); border-radius: 4px; padding: 10px 12px; color: var(--text-primary); outline: none;" />
+                <button id="btn-send-chat" class="primary-btn" style="padding: 10px 16px;"><i class="fa-solid fa-paper-plane"></i></button>
+            </div>
+        </div>
     </div>
 
     <!-- Application Script -->

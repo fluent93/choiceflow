@@ -13,7 +13,9 @@ const STATE = {
     chatAnswers: {},
     geminiApiKey: localStorage.getItem('gemini_api_key') || '',
     serverKeyAvailable: false,
-    localAiAvailable: false
+    localAiAvailable: false,
+    isAiDraft: false,
+    dynamicQuestions: null
 };
 
 // Multilingual Dictionary
@@ -55,6 +57,8 @@ const TRANSLATIONS = {
         actionHeader: "결정 후 즉시 실행할 Action Items",
         btnRestart: "처음부터 다시하기",
         btnExport: "결과 인쇄 및 PDF 저장",
+        btnUpdateReport: "수정치로 AI 리포트 업데이트",
+        btnOpenChat: "AI 1:1 상담",
         apiDesc: "실제 실시간 AI 맞춤형 처방을 받기 원하시면 Gemini API 키를 등록하세요. 키는 브라우저의 로컬 스토리지에만 안전하게 보관됩니다.",
         apiKeyLabel: "Gemini API Key",
         apiHelp: "키가 없을 시에는 내장된 결정 심리학 엔진(Simulated)이 합리적으로 결과를 도출해 드립니다.",
@@ -93,7 +97,30 @@ const TRANSLATIONS = {
         
         actionItem1: "가장 가중치가 큰 [{name}] 조건에 최적화된 리서치 24시간 동안 추가 수행하기",
         actionItem2: "결정된 대안 [{name}]을 선택했을 때 포기하게 되는 기회비용 최종 수용하기",
-        actionItem3: "주변 동료 혹은 조력자에게 이 분석 결과를 공유하며 타당성 검증받기"
+        actionItem3: "주변 동료 혹은 조력자에게 이 분석 결과를 공유하며 타당성 검증받기",
+        
+        // New Premium Additions
+        contextLabel: "고민의 상세 맥락 & 상황 설명 (선택사항)",
+        contextPlaceholder: "예: 연봉이 15% 많지만 왕복 3시간 통근인 스타트업으로 이직할지, 가깝고 편하지만 연봉이 정체된 대기업에 남을지 고민입니다. 내년에 결혼이 계획되어 있습니다.",
+        btnStartManual: "직접 매트릭스 작성",
+        btnStartAi: "AI 초간편 분석 시작",
+        aiDraftBadge: "AI가 상황을 분석하여 옵션, 기준, 점수 초안을 작성했습니다. 원하는 대로 자유롭게 수정하세요.",
+        frameworkHeader: "의사결정 프레임워크 분석",
+        frameworkTitle: "분석 프레임워크",
+        chatGeneratingQuestions: "AI가 고민을 심층 분석하여 내면의 핵심 가치를 파고드는 맞춤형 질문을 생성 중입니다...",
+        chatGeneratingFailed: "맞춤형 질문 생성에 실패했습니다. 기본 질문으로 대체합니다.",
+        btnSkipSetup: "대화 건너뛰고 바로 결과 보기",
+        btnGoDashboard: "최종 분석 대시보드 보기",
+        coCreationTitle: "AI 공동 창작실",
+        coCreationSubtitle: "고민의 숨겨진 가치를 끌어내고 최적의 매트릭스를 함께 설계합니다. (최대 3턴)",
+        matrixPreviewTitle: "매트릭스 실시간 프리뷰",
+        matrixPreviewDesc: "대화가 진행되면서 실시간으로 콕핏 데이터가 업데이트됩니다.",
+        previewOptions: "비교 선택지",
+        previewCriteria: "평가 기준 및 가중치",
+        criteriaAnalysisHeader: "평가 기준별 상세 비교 분석",
+        chatDrawerTitle: "AI 1:1 심층 상담",
+        chatTipPrefix: "분석 결과에 대해 궁금한 점이나 추가 문의가 있으시다면, 하단의",
+        chatTipSuffix: "버튼을 통해 AI와 심층 대화를 나눠보세요!"
     },
     en: {
         badge: "Modern Decision Assistant",
@@ -124,6 +151,8 @@ const TRANSLATIONS = {
         actionHeader: "Immediate Action Items Post-Decision",
         btnRestart: "Start Over",
         btnExport: "Print / Export PDF",
+        btnUpdateReport: "Update AI Report with changes",
+        btnOpenChat: "AI 1:1 Q&A Chat",
         apiDesc: "Enter your Gemini API key to receive real-time customized AI consulting. The key is stored securely in your browser's localStorage.",
         apiKeyLabel: "Gemini API Key",
         apiHelp: "If no key is provided, our built-in decision psychology engine (Simulated) will formulate the response.",
@@ -169,6 +198,29 @@ const TRANSLATIONS = {
         engineStatusLocalInactive: "On-Device AI (Gemini Nano): Not Supported",
         engineStatusUserActive: "Custom Key: Override Active",
         engineStatusUserInactive: "Custom Key: Not Configured",
+        
+        // New Premium Additions
+        contextLabel: "Detailed Context & Situation (Optional)",
+        contextPlaceholder: "e.g. switch to a startup with 15% pay rise but 3hr commute, vs stay at a stable but stagnant big company. Getting married next year.",
+        btnStartManual: "Manual Matrix Setup",
+        btnStartAi: "Start AI Smart Assessment",
+        aiDraftBadge: "AI has generated a draft for options, criteria, and scores based on your context. Feel free to adjust them.",
+        frameworkHeader: "Strategic Framework Analysis",
+        frameworkTitle: "Analysis Framework",
+        chatGeneratingQuestions: "AI is analyzing your matrix to generate tailored psychological questions...",
+        chatGeneratingFailed: "Failed to generate tailored questions. Using general questions instead.",
+        btnSkipSetup: "Skip Chat & View Results",
+        btnGoDashboard: "Go to Analysis Dashboard",
+        coCreationTitle: "AI Co-Creative Lab",
+        coCreationSubtitle: "Uncover hidden values and co-create your optimal decision matrix. (Max 3 turns)",
+        matrixPreviewTitle: "Live Matrix Preview",
+        matrixPreviewDesc: "Matrix data updates dynamically as the conversation progresses.",
+        previewOptions: "Options",
+        previewCriteria: "Criteria & Weights",
+        criteriaAnalysisHeader: "Detailed Criteria Comparison",
+        chatDrawerTitle: "AI 1:1 Consultation",
+        chatTipPrefix: "If you have any questions or need further analysis, click the",
+        chatTipSuffix: "button below to start a deep conversation with our AI!"
     }
 };
 
@@ -306,16 +358,20 @@ const TUNING_QUESTIONS = {
     ]
 };
 
-// Document Elements
+// Document Elements Map (Upgraded)
 const el = {
     viewLanding: document.getElementById('view-landing'),
     viewWizard: document.getElementById('view-wizard'),
     viewDashboard: document.getElementById('view-dashboard'),
+    viewAiChatSetup: document.getElementById('view-ai-chat-setup'),
     
     inputDilemma: document.getElementById('input-dilemma'),
-    btnStart: document.getElementById('btn-start'),
+    inputContext: document.getElementById('input-context'),
+    btnStartManual: document.getElementById('btn-start-manual'),
+    btnStartAi: document.getElementById('btn-start-ai'),
     
     wizardDilemmaTitle: document.getElementById('wizard-dilemma-title'),
+    wizardAiBadge: document.getElementById('wizard-ai-badge'),
     optionsList: document.getElementById('options-list'),
     btnAddOption: document.getElementById('btn-add-option'),
     
@@ -328,6 +384,18 @@ const el = {
     chatMessages: document.getElementById('chat-messages'),
     chatLoading: document.getElementById('chat-loading'),
     chatInputArea: document.getElementById('chat-input-area'),
+    chatTextInput: document.getElementById('chat-text-input'),
+    btnSendChat: document.getElementById('btn-send-chat'),
+    
+    aiSetupChatMessages: document.getElementById('ai-setup-chat-messages'),
+    aiSetupChatLoading: document.getElementById('ai-setup-chat-loading'),
+    aiSetupChatText: document.getElementById('ai-setup-chat-text'),
+    btnSendSetupChat: document.getElementById('btn-send-setup-chat'),
+    btnSkipSetup: document.getElementById('btn-skip-setup'),
+    btnGoDashboard: document.getElementById('btn-go-dashboard'),
+    setupQuickReplies: document.getElementById('setup-quick-replies'),
+    previewOptionsList: document.getElementById('preview-options-list'),
+    previewCriteriaList: document.getElementById('preview-criteria-list'),
     
     btnPrev: document.getElementById('btn-prev'),
     btnNext: document.getElementById('btn-next'),
@@ -335,8 +403,16 @@ const el = {
     dashboardDilemmaTitle: document.getElementById('dashboard-dilemma-title'),
     resultsChartContainer: document.getElementById('results-chart-container'),
     matrixTable: document.getElementById('matrix-table'),
+    btnUpdateReport: document.getElementById('btn-update-report'),
+    btnOpenChat: document.getElementById('btn-open-chat'),
+    btnCloseChat: document.getElementById('btn-close-chat'),
+    chatDrawer: document.getElementById('chat-drawer'),
     winnerBox: document.getElementById('winner-box'),
     verdictSummary: document.getElementById('verdict-summary'),
+    criteriaAnalysisSection: document.getElementById('criteria-analysis-section'),
+    criteriaAnalysisList: document.getElementById('criteria-analysis-list'),
+    frameworkName: document.getElementById('framework-name'),
+    frameworkAnalysis: document.getElementById('framework-analysis'),
     biasAlert: document.getElementById('bias-alert'),
     actionList: document.getElementById('action-list'),
     verdictApiStatus: document.getElementById('verdict-api-status'),
@@ -362,14 +438,61 @@ function setupEventListeners() {
         });
     });
 
-    // Landing: Start custom dilemma
-    el.btnStart.addEventListener('click', () => {
+    // Landing: Start custom dilemma (Manual)
+    el.btnStartManual.addEventListener('click', () => {
         const text = el.inputDilemma.value.trim();
         if (!text) {
             alert(t('alertStartDilemma'));
             return;
         }
+        STATE.isAiDraft = false;
+        el.wizardAiBadge.classList.add('hidden');
         startWizard(text);
+    });
+
+    // Landing: Start custom dilemma (AI Auto-Populate & Instant Diagnosis)
+    el.btnStartAi.addEventListener('click', () => {
+        const text = el.inputDilemma.value.trim();
+        const contextText = el.inputContext.value.trim();
+        if (!text) {
+            alert(t('alertStartDilemma'));
+            return;
+        }
+
+        STATE.dilemma = text;
+        STATE.context = contextText;
+        startSetupChat();
+    });
+
+    // Co-creation Chat Room Events
+    el.btnSendSetupChat.addEventListener('click', () => {
+        const txt = el.aiSetupChatText.value.trim();
+        if (txt) sendSetupChatMessage(txt);
+    });
+
+    el.aiSetupChatText.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') {
+            const txt = el.aiSetupChatText.value.trim();
+            if (txt) sendSetupChatMessage(txt);
+        }
+    });
+
+    el.btnSkipSetup.addEventListener('click', async () => {
+        el.btnSkipSetup.disabled = true;
+        el.btnSkipSetup.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Finalizing...`;
+        try {
+            await finalizeSetupChat(true);
+        } catch (e) {
+            console.error('Failed to skip setup:', e);
+            startWizard(STATE.dilemma, false);
+        } finally {
+            el.btnSkipSetup.disabled = false;
+            el.btnSkipSetup.innerHTML = `<i class="fa-solid fa-forward"></i> <span data-i18n="btnSkipSetup">대화 건너뛰고 바로 결과 보기</span>`;
+        }
+    });
+
+    el.btnGoDashboard.addEventListener('click', () => {
+        showFinalDashboard();
     });
 
     // Wizard Option Management
@@ -391,6 +514,73 @@ function setupEventListeners() {
     // Dashboard actions
     el.btnRestart.addEventListener('click', restartApp);
     el.btnExport.addEventListener('click', () => window.print());
+
+    // Dashboard: Regenerate AI report with modified values
+    el.btnUpdateReport.addEventListener('click', async () => {
+        el.btnUpdateReport.classList.remove('pulse-highlight');
+        // Show loading state
+        const originalHtml = el.btnUpdateReport.innerHTML;
+        el.btnUpdateReport.disabled = true;
+        el.btnUpdateReport.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Updating...`;
+
+        try {
+            // Re-calculate scores
+            const finalScores = {};
+            let totalWeight = 0;
+            STATE.criteria.forEach(c => { totalWeight += c.weight; });
+            STATE.options.forEach(opt => {
+                let weightedSum = 0;
+                STATE.criteria.forEach(c => {
+                    const score = STATE.scores[c.name][opt] || 5;
+                    weightedSum += score * c.weight;
+                });
+                finalScores[opt] = totalWeight > 0 ? (weightedSum / totalWeight).toFixed(2) : 0;
+            });
+
+            let winner = '';
+            let highestScore = -1;
+            STATE.options.forEach(opt => {
+                const s = parseFloat(finalScores[opt]);
+                if (s > highestScore) {
+                    highestScore = s;
+                    winner = opt;
+                }
+            });
+
+            // Call API analyze
+            if (STATE.geminiApiKey) {
+                await fetchGeminiVerdict(finalScores, winner);
+            } else if (STATE.serverKeyAvailable) {
+                await fetchServerVerdict(finalScores, winner);
+            } else if (STATE.localAiAvailable) {
+                await fetchLocalAiVerdict(finalScores, winner);
+            } else {
+                generateSimulatedVerdict(finalScores, winner);
+            }
+        } catch (e) {
+            console.error('Failed to update report:', e);
+        } finally {
+            el.btnUpdateReport.disabled = false;
+            el.btnUpdateReport.innerHTML = originalHtml;
+        }
+    });
+
+    // Dashboard: Toggle AI Chat Drawer
+    el.btnOpenChat.addEventListener('click', () => {
+        openContinuousChat();
+    });
+
+    el.btnCloseChat.addEventListener('click', () => {
+        el.chatDrawer.classList.remove('active');
+    });
+
+    // Continuous Chat Open-ended controls
+    el.btnSendChat.addEventListener('click', sendContinuousChatMessage);
+    el.chatTextInput.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') {
+            sendContinuousChatMessage();
+        }
+    });
 }
 
 // Translations Helper Function
@@ -499,6 +689,8 @@ function switchView(viewName) {
         el.viewWizard.classList.add('active');
     } else if (viewName === 'dashboard') {
         el.viewDashboard.classList.add('active');
+    } else if (viewName === 'ai-chat-setup') {
+        el.viewAiChatSetup.classList.add('active');
     }
 }
 
@@ -725,62 +917,370 @@ function renderScoringSliders() {
 // Wizard - Step 4: Conversational Chat Logic
 let currentChatIdx = 0;
 
-function startTuningChat() {
-    el.chatMessages.innerHTML = '';
-    el.chatInputArea.innerHTML = '';
-    currentChatIdx = 0;
-    STATE.chatAnswers = {};
+// Markdown formatter for elegant chat replies
+function formatMarkdown(text) {
+    if (!text) return '';
+    let escaped = text
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;");
     
-    const currentQuestions = TUNING_QUESTIONS[STATE.lang];
-    addChatBubble('ai', t('chatAiIntro') + currentQuestions[0].text);
-    renderChatOptions(currentQuestions[0]);
+    escaped = escaped.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+    escaped = escaped.replace(/^\s*[-*]\s+(.*)$/gm, '<li>$1</li>');
+    escaped = escaped.replace(/(<li>.*<\/li>)/gs, '<ul>$1</ul>');
+    escaped = escaped.replace(/^### (.*)$/gm, '<h3>$1</h3>');
+    escaped = escaped.replace(/^## (.*)$/gm, '<h2>$1</h2>');
+    escaped = escaped.replace(/^# (.*)$/gm, '<h1>$1</h1>');
+    escaped = escaped.replace(/\n/g, '<br>');
+    return escaped;
 }
 
-function addChatBubble(sender, text) {
+// ----------------------------------------------------
+// 1단계: AI 공동 창작실 (Co-creation Dialogue)
+// ----------------------------------------------------
+let setupChatHistory = [];
+
+async function startSetupChat() {
+    switchView('ai-chat-setup');
+    el.aiSetupChatMessages.innerHTML = '';
+    el.setupQuickReplies.innerHTML = '';
+    el.aiSetupChatText.value = '';
+    el.btnGoDashboard.classList.add('hidden');
+    el.btnSkipSetup.classList.remove('hidden');
+    setupChatHistory = [];
+    
+    // Reset Matrix State for Preview
+    STATE.options = [];
+    STATE.criteria = [];
+    STATE.scores = {};
+    renderSetupPreview();
+    
+    addSetupChatBubble('ai', STATE.lang === 'ko' 
+        ? `안녕하세요! 입력하신 고민 **'${STATE.dilemma}'**에 대해 맞춤형 의사결정 매트릭스를 설계 중입니다. 잠시만 기다려 주세요...`
+        : `Hello! I'm preparing a customized decision matrix for your dilemma: **'${STATE.dilemma}'**. Just a moment...`);
+        
+    await sendSetupChatMessage("");
+}
+
+function addSetupChatBubble(sender, text) {
     const bubble = document.createElement('div');
     bubble.className = `chat-bubble ${sender}`;
-    bubble.textContent = text;
+    bubble.innerHTML = formatMarkdown(text);
+    el.aiSetupChatMessages.appendChild(bubble);
+    el.aiSetupChatMessages.scrollTop = el.aiSetupChatMessages.scrollHeight;
+}
+
+async function sendSetupChatMessage(userText) {
+    if (userText) {
+        addSetupChatBubble('user', userText);
+        setupChatHistory.push({ role: 'user', content: userText });
+    }
+
+    el.aiSetupChatText.value = '';
+    el.setupQuickReplies.innerHTML = '';
+    el.aiSetupChatLoading.classList.remove('hidden');
+
+    try {
+        let data;
+        if (STATE.geminiApiKey) {
+            data = await fetchGeminiSetupChat(false);
+        } else {
+            const response = await fetch('/api/chat-consult', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    dilemma: STATE.dilemma,
+                    context: STATE.context,
+                    chatHistory: setupChatHistory,
+                    forceFinish: false,
+                    language: STATE.lang
+                })
+            });
+
+            if (!response.ok) throw new Error('Co-creation chat request failed');
+            data = await response.json();
+        }
+
+        el.aiSetupChatLoading.classList.add('hidden');
+        
+        // Add AI response
+        addSetupChatBubble('ai', data.reply);
+        setupChatHistory.push({ role: 'assistant', content: data.reply });
+
+        // Update Matrix State and Preview
+        if (data.currentMatrix) {
+            STATE.options = data.currentMatrix.options || [];
+            STATE.criteria = data.currentMatrix.criteria || [];
+            STATE.scores = data.currentMatrix.scores || {};
+            renderSetupPreview();
+        }
+
+        // Check if finished
+        if (data.isFinished) {
+            STATE.finalReport = data.finalReport;
+            el.btnSkipSetup.classList.add('hidden');
+            el.btnGoDashboard.classList.remove('hidden');
+        } else {
+            // Render quick replies
+            if (data.suggestedOptions && data.suggestedOptions.length > 0) {
+                data.suggestedOptions.forEach(opt => {
+                    const btn = document.createElement('button');
+                    btn.className = 'chat-option-btn';
+                    btn.textContent = opt;
+                    btn.addEventListener('click', () => sendSetupChatMessage(opt));
+                    el.setupQuickReplies.appendChild(btn);
+                });
+            }
+        }
+
+    } catch (err) {
+        console.error('Co-creation chat error:', err);
+        el.aiSetupChatLoading.classList.add('hidden');
+        addSetupChatBubble('ai', STATE.lang === 'ko'
+            ? '죄송합니다. AI와의 공동 창작 대화 도중 오류가 발생했습니다. 아래 버튼을 눌러 바로 결과 보기로 건너뛸 수 있습니다.'
+            : 'Sorry, an error occurred during the co-creation dialogue. You can click skip to view the results immediately.');
+    }
+}
+
+async function finalizeSetupChat(forceFinish) {
+    el.aiSetupChatLoading.classList.remove('hidden');
+    
+    try {
+        let data;
+        if (STATE.geminiApiKey) {
+            data = await fetchGeminiSetupChat(forceFinish);
+        } else {
+            const response = await fetch('/api/chat-consult', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    dilemma: STATE.dilemma,
+                    context: STATE.context,
+                    chatHistory: setupChatHistory,
+                    forceFinish: forceFinish,
+                    language: STATE.lang
+                })
+            });
+            
+            if (!response.ok) throw new Error('Failed to finalize co-creation chat');
+            data = await response.json();
+        }
+        
+        // Save to state
+        STATE.options = data.currentMatrix.options;
+        STATE.criteria = data.currentMatrix.criteria;
+        STATE.scores = data.currentMatrix.scores;
+        STATE.finalReport = data.finalReport;
+        STATE.isAiDraft = true;
+        
+        // Switch to dashboard and render
+        showFinalDashboard();
+
+    } catch (err) {
+        console.error('Failed to finalize setup chat:', err);
+        throw err;
+    } finally {
+        el.aiSetupChatLoading.classList.add('hidden');
+    }
+}
+
+function renderSetupPreview() {
+    el.previewOptionsList.innerHTML = '';
+    if (STATE.options && STATE.options.length > 0) {
+        STATE.options.forEach(opt => {
+            const li = document.createElement('li');
+            li.innerHTML = `<i class="fa-solid fa-square-check text-primary"></i> <span>${opt}</span>`;
+            el.previewOptionsList.appendChild(li);
+        });
+    } else {
+        el.previewOptionsList.innerHTML = `<li style="color: var(--text-secondary); opacity: 0.6;">대화가 진행되면 옵션이 여기에 나타납니다.</li>`;
+    }
+
+    el.previewCriteriaList.innerHTML = '';
+    if (STATE.criteria && STATE.criteria.length > 0) {
+        STATE.criteria.forEach(crit => {
+            const row = document.createElement('div');
+            row.className = 'preview-crit-row';
+            const weightVal = crit.weight || 3;
+            const percentage = (weightVal / 5) * 100;
+            
+            row.innerHTML = `
+                <div class="preview-crit-header">
+                    <span style="font-weight: 500;">${crit.name}</span>
+                    <span style="color: var(--primary); font-weight: 600;">W${weightVal}</span>
+                </div>
+                <div class="preview-crit-bar-track">
+                    <div class="preview-crit-bar-fill" style="width: ${percentage}%"></div>
+                </div>
+            `;
+            el.previewCriteriaList.appendChild(row);
+        });
+    } else {
+        el.previewCriteriaList.innerHTML = `<div style="color: var(--text-secondary); opacity: 0.6; font-size: 0.88rem;">대화가 진행되면 평가 기준이 여기에 나타납니다.</div>`;
+    }
+}
+
+function showFinalDashboard() {
+    el.dashboardDilemmaTitle.textContent = `"${STATE.dilemma}"`;
+    
+    // Calculate Scores locally to draw charts
+    const finalScores = {};
+    let totalWeight = 0;
+    STATE.criteria.forEach(c => { totalWeight += c.weight; });
+    STATE.options.forEach(opt => {
+        let weightedSum = 0;
+        STATE.criteria.forEach(c => {
+            const score = STATE.scores[c.name] && STATE.scores[c.name][opt] !== undefined ? STATE.scores[c.name][opt] : 5;
+            weightedSum += score * c.weight;
+        });
+        finalScores[opt] = totalWeight > 0 ? (weightedSum / totalWeight).toFixed(2) : 0;
+    });
+
+    let winner = '';
+    let highestScore = -1;
+    STATE.options.forEach(opt => {
+        const s = parseFloat(finalScores[opt]);
+        if (s > highestScore) {
+            highestScore = s;
+            winner = opt;
+        }
+    });
+
+    // Render Table and Chart on Dashboard
+    renderChart(finalScores, winner);
+    renderTable();
+
+    // Populate AI report text from finalReport
+    const report = STATE.finalReport || {};
+    
+    // Winner Box
+    const isAi = STATE.geminiApiKey || STATE.serverKeyAvailable || STATE.localAiAvailable;
+    const titleKey = isAi ? 'aiWinnerTitle' : 'winnerTitle';
+    const iconClass = isAi ? 'fa-solid fa-robot' : 'fa-solid fa-award';
+    el.winnerBox.innerHTML = `
+        <i class="${iconClass} winner-icon"></i>
+        <div class="winner-details">
+            <h5>${t(titleKey)}</h5>
+            <div class="winner-name">${winner}</div>
+        </div>
+    `;
+
+    el.verdictSummary.textContent = report.summary || '';
+    
+    // Render Detailed Criteria Analysis Section
+    el.criteriaAnalysisList.innerHTML = '';
+    if (report.detailedAnalysis && report.detailedAnalysis.length > 0) {
+        report.detailedAnalysis.forEach(item => {
+            const div = document.createElement('div');
+            div.className = 'criteria-analysis-item';
+            div.innerHTML = `
+                <div class="criteria-analysis-title">
+                    <i class="fa-solid fa-check-double"></i> <span>${item.criterion}</span>
+                </div>
+                <div class="criteria-analysis-text">${item.analysis}</div>
+            `;
+            el.criteriaAnalysisList.appendChild(div);
+        });
+        el.criteriaAnalysisSection.style.display = 'block';
+    } else {
+        el.criteriaAnalysisSection.style.display = 'none';
+    }
+
+    el.frameworkName.textContent = report.frameworkName || "Strategic Framework";
+    el.frameworkAnalysis.textContent = report.frameworkAnalysis || "";
+    
+    if (report.biasName) {
+        el.biasAlert.innerHTML = `<strong>${report.biasName}</strong>: ${report.biasDesc}`;
+    } else {
+        el.biasAlert.textContent = "";
+    }
+    
+    el.actionList.innerHTML = '';
+    if (report.actions && report.actions.length > 0) {
+        report.actions.forEach(action => {
+            const li = document.createElement('li');
+            li.innerHTML = `<i class="fa-solid fa-circle-check"></i> <span>${action}</span>`;
+            el.actionList.appendChild(li);
+        });
+    }
+
+    el.verdictApiStatus.textContent = STATE.geminiApiKey ? 'Custom Gemini Key' : 'Llama 3.3 (Groq)';
+    el.verdictApiStatus.style.backgroundColor = 'rgba(16, 185, 129, 0.2)';
+    el.verdictApiStatus.style.color = '#6ee7b7';
+
+    switchView('dashboard');
+}
+
+// ----------------------------------------------------
+// 2단계: 대시보드 1:1 무제한 심층 상담 (Post-Cockpit Continuous Chat)
+// ----------------------------------------------------
+let continuousChatHistory = [];
+
+function openContinuousChat() {
+    el.chatDrawer.classList.add('active');
+    if (el.chatMessages.children.length === 0) {
+        continuousChatHistory = [];
+        addContinuousChatBubble('ai', STATE.lang === 'ko'
+            ? `안녕하세요! 최종 의사결정 매트릭스와 전략적 제언 보고서가 도출되었습니다. 도출된 분석 결과에 대해 궁금한 점이 있으시다면 무엇이든 물어보세요. (예: "왜 Option A가 Option B보다 비용 점수가 낮은가요?")`
+            : `Hello! Your decision matrix and strategic consultation report are ready. If you have any further questions about the findings or trade-offs, feel free to ask me anything here!`);
+    }
+}
+
+function addContinuousChatBubble(sender, text) {
+    const bubble = document.createElement('div');
+    bubble.className = `chat-bubble ${sender}`;
+    bubble.innerHTML = formatMarkdown(text);
     el.chatMessages.appendChild(bubble);
     el.chatMessages.scrollTop = el.chatMessages.scrollHeight;
 }
 
-function renderChatOptions(question) {
-    el.chatInputArea.innerHTML = '';
-    question.options.forEach(opt => {
-        const btn = document.createElement('button');
-        btn.className = 'chat-option-btn';
-        btn.textContent = opt.text;
-        btn.addEventListener('click', () => handleChatResponse(question, opt));
-        el.chatInputArea.appendChild(btn);
-    });
-}
+async function sendContinuousChatMessage() {
+    const text = el.chatTextInput.value.trim();
+    if (!text) return;
 
-function handleChatResponse(question, option) {
-    // Record Answer
-    STATE.chatAnswers[question.id] = option.value;
-    
-    // User message bubble
-    addChatBubble('user', option.text);
-    
-    // Disable inputs momentarily
-    el.chatInputArea.innerHTML = '';
+    el.chatTextInput.value = '';
+    addContinuousChatBubble('user', text);
+    continuousChatHistory.push({ role: 'user', content: text });
+
     el.chatLoading.classList.remove('hidden');
 
-    setTimeout(() => {
-        el.chatLoading.classList.add('hidden');
-        currentChatIdx++;
-        
-        const currentQuestions = TUNING_QUESTIONS[STATE.lang];
-        if (currentChatIdx < currentQuestions.length) {
-            const nextQ = currentQuestions[currentChatIdx];
-            addChatBubble('ai', nextQ.text);
-            renderChatOptions(nextQ);
+    try {
+        let reply = "";
+        if (STATE.geminiApiKey) {
+            reply = await fetchGeminiContinuousChat(text);
         } else {
-            addChatBubble('ai', t('chatAiComplete'));
-            // Adjust weights heuristically based on answers
-            applyHeuristicTuning();
+            const response = await fetch('/api/chat-consulting-continuous', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    dilemma: STATE.dilemma,
+                    matrix: {
+                        options: STATE.options,
+                        criteria: STATE.criteria,
+                        scores: STATE.scores
+                    },
+                    chatHistory: continuousChatHistory.slice(0, -1),
+                    message: text,
+                    language: STATE.lang
+                })
+            });
+
+            if (!response.ok) throw new Error('Continuous consulting request failed');
+            const data = await response.json();
+            reply = data.reply;
         }
-    }, 700);
+
+        el.chatLoading.classList.add('hidden');
+        addContinuousChatBubble('ai', reply);
+        continuousChatHistory.push({ role: 'assistant', content: reply });
+
+    } catch (err) {
+        console.error('Continuous consulting error:', err);
+        el.chatLoading.classList.add('hidden');
+        addContinuousChatBubble('ai', STATE.lang === 'ko'
+            ? '죄송합니다. 답변을 생성하는 도중 오류가 발생했습니다.'
+            : 'Sorry, an error occurred while generating the response.');
+    }
 }
 
 // Heuristics: Dynamically adjust criteria weights based on questionnaire responses
@@ -890,8 +1390,14 @@ async function calculateAndShowResults() {
     renderTable();
 
     // 5. Generate AI Verdict (Real or Simulated) based on priorities
-    if (STATE.serverKeyAvailable) {
-        // Option 1: Server API Proxy with Llama 3.3 (Groq)
+    if (STATE.geminiApiKey) {
+        // Option 1: Custom User Gemini Key
+        el.verdictApiStatus.textContent = 'Custom Gemini Key';
+        el.verdictApiStatus.style.backgroundColor = 'rgba(245, 158, 11, 0.2)';
+        el.verdictApiStatus.style.color = '#fde047';
+        await fetchGeminiVerdict(finalScores, winner);
+    } else if (STATE.serverKeyAvailable) {
+        // Option 2: Server API Proxy with Llama 3.3 (Groq)
         el.verdictApiStatus.textContent = 'Llama 3.3 (Groq)';
         el.verdictApiStatus.style.backgroundColor = 'rgba(16, 185, 129, 0.2)';
         el.verdictApiStatus.style.color = '#6ee7b7';
@@ -962,14 +1468,101 @@ function renderTable() {
         html += `
             <tr>
                 <td style="font-weight: 500; color: var(--text-primary);">${crit.name}</td>
-                <td>${crit.weight}</td>
-                ${STATE.options.map(opt => `<td>${STATE.scores[crit.name][opt] || 5}${t('scoreUnit')}</td>`).join('')}
+                <td>
+                    <select class="weight-select" data-criterion="${crit.name}">
+                        ${[1, 2, 3, 4, 5].map(w => `<option value="${w}" ${crit.weight == w ? 'selected' : ''}>${w}</option>`).join('')}
+                    </select>
+                </td>
+                ${STATE.options.map(opt => {
+                    const scoreVal = STATE.scores[crit.name] && STATE.scores[crit.name][opt] !== undefined ? STATE.scores[crit.name][opt] : 5;
+                    return `
+                        <td>
+                            <select class="score-select" data-criterion="${crit.name}" data-option="${opt}">
+                                ${[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(s => `<option value="${s}" ${scoreVal == s ? 'selected' : ''}>${s}${t('scoreUnit')}</option>`).join('')}
+                            </select>
+                        </td>
+                    `;
+                }).join('')}
             </tr>
         `;
     });
 
     html += '</tbody>';
     el.matrixTable.innerHTML = html;
+
+    // Bind event listeners to weight-select and score-select elements
+    const weightSelects = el.matrixTable.querySelectorAll('.weight-select');
+    weightSelects.forEach(select => {
+        select.addEventListener('change', (e) => {
+            const criterionName = e.target.getAttribute('data-criterion');
+            const newWeight = parseInt(e.target.value);
+            
+            // Find and update the weight in STATE.criteria
+            const crit = STATE.criteria.find(c => c.name === criterionName);
+            if (crit) {
+                crit.weight = newWeight;
+            }
+            
+            // Trigger live recalculation
+            recalculateMatrixLive();
+        });
+    });
+
+    const scoreSelects = el.matrixTable.querySelectorAll('.score-select');
+    scoreSelects.forEach(select => {
+        select.addEventListener('change', (e) => {
+            const criterionName = e.target.getAttribute('data-criterion');
+            const optionName = e.target.getAttribute('data-option');
+            const newScore = parseInt(e.target.value);
+            
+            // Update score in STATE.scores
+            if (!STATE.scores[criterionName]) {
+                STATE.scores[criterionName] = {};
+            }
+            STATE.scores[criterionName][optionName] = newScore;
+            
+            // Trigger live recalculation
+            recalculateMatrixLive();
+        });
+    });
+}
+
+function recalculateMatrixLive() {
+    // 1. Calculate Scores
+    const finalScores = {};
+    let totalWeight = 0;
+    
+    STATE.criteria.forEach(c => {
+        totalWeight += c.weight;
+    });
+
+    STATE.options.forEach(opt => {
+        let weightedSum = 0;
+        STATE.criteria.forEach(c => {
+            const score = STATE.scores[c.name] && STATE.scores[c.name][opt] !== undefined ? STATE.scores[c.name][opt] : 5;
+            weightedSum += score * c.weight;
+        });
+        finalScores[opt] = totalWeight > 0 ? (weightedSum / totalWeight).toFixed(2) : 0;
+    });
+
+    // 2. Identify Winner
+    let winner = '';
+    let highestScore = -1;
+    STATE.options.forEach(opt => {
+        const s = parseFloat(finalScores[opt]);
+        if (s > highestScore) {
+            highestScore = s;
+            winner = opt;
+        }
+    });
+
+    // 3. Redraw chart
+    renderChart(finalScores, winner);
+
+    // 4. Highlight update button to remind user to update the AI report
+    if (el.btnUpdateReport) {
+        el.btnUpdateReport.classList.add('pulse-highlight');
+    }
 }
 
 // Local simulation engine based on decision rules
@@ -1000,12 +1593,44 @@ function generateSimulatedVerdict(finalScores, winner) {
 
     el.verdictSummary.textContent = text;
 
+    // Render Detailed Criteria Analysis Section for simulated verdict
+    el.criteriaAnalysisList.innerHTML = '';
+    STATE.criteria.forEach(c => {
+        const div = document.createElement('div');
+        div.className = 'criteria-analysis-item';
+        
+        let comparisonText = '';
+        if (STATE.lang === 'ko') {
+            comparisonText = `이 기준(가중치 ${c.weight})에서 각 선택지의 점수는 다음과 같습니다: ` + 
+                STATE.options.map(opt => `"${opt}"은(는) ${STATE.scores[c.name]?.[opt] || 5}점`).join(', ') + 
+                `. 이에 따라 종합 점수 산정에 반영되었습니다.`;
+        } else {
+            comparisonText = `For this criterion (weight ${c.weight}), the scores are: ` + 
+                STATE.options.map(opt => `"${opt}": ${STATE.scores[c.name]?.[opt] || 5} pts`).join(', ') + 
+                `. These values are incorporated into the overall weighted analysis.`;
+        }
+
+        div.innerHTML = `
+            <div class="criteria-analysis-title">
+                <i class="fa-solid fa-check-double"></i> <span>${c.name}</span>
+            </div>
+            <div class="criteria-analysis-text">${comparisonText}</div>
+        `;
+        el.criteriaAnalysisList.appendChild(div);
+    });
+    el.criteriaAnalysisSection.style.display = 'block';
+
+    // Render simulated framework
+    el.frameworkName.textContent = t('frameworkTitle') || "Strategic Framework Analysis";
+    el.frameworkAnalysis.textContent = STATE.lang === 'ko' 
+        ? `가중치 의사결정 매트릭스(Weighted Decision Matrix) 프레임워크를 기반으로 각 대안의 중요도 가중치를 곱해 정량적 합의점에 도달했습니다.`
+        : `Based on the Weighted Decision Matrix framework, we multiplied scores by value weights to reach a quantitative decision consensus.`;
+
     // Cognitive bias warning logic
     let biasName = t('biasStatusQuoName');
     let biasDesc = t('biasStatusQuoDesc');
 
-    // Specific heuristics trigger for bias
-    const containsCost = STATE.criteria.some(c => c.name.includes('비용') || c.name.includes('예산') || c.name.toLowerCase().includes('cost') || c.name.toLowerCase().includes('price') || c.name.toLowerCase().includes('budget'));
+    const containsCost = STATE.criteria.some(c => c.name.toLowerCase().includes('cost') || c.name.toLowerCase().includes('price') || c.name.toLowerCase().includes('budget'));
     if (containsCost && STATE.chatAnswers.budget === 'high') {
         biasName = t('biasSunkCostName');
         biasDesc = t('biasSunkCostDesc');
@@ -1048,16 +1673,26 @@ async function fetchGeminiVerdict(finalScores, winner) {
         };
 
         const systemPrompt = `You are an expert AI consulting assistant specialized in human decision psychology.
-Analyze the user's dilemma, options, criteria scores, weights, and interview answers, and provide an insightful final recommendation report.
+Analyze the user's dilemma, options, criteria scores, weights, and provide an insightful final recommendation report.
+Be analytical, precise, and decisive. Do not sit on the fence—deliver a clear recommendation.
 CRITICAL: You must write the report in ${payload.language}.
 
 Please output your analysis in the following strict JSON format, containing no other text:
 {
   "summary": "Detailed final analysis text explaining why the winner is optimal based on the weights.",
+  "detailedAnalysis": [
+    {
+      "criterion": "Criterion Name",
+      "analysis": "A detailed comparative analysis explaining how and why options perform on this criterion. CRITICAL: The analysis for each criterion must be extremely detailed, concrete, and rich in realistic context. You must not merely repeat the scores or say one option is better. You must draw upon your vast knowledge base to provide specific factual or highly plausible details (e.g. if dilemma is travel: compare options using concrete local delicacies like Yeosu's marinated crab vs. Tongyeong's sea squirt bibimbap, specific transit methods like KTX travel times vs. driving routes, and estimated budget ranges or lodging costs; if dilemma is career: compare typical salary numbers, growth outlooks, commute paths, or work hours). Each criterion comparison must be a full, rich paragraph of 3-5 highly detailed sentences."
+    }
+  ],
+  "frameworkName": "Strategic framework name used (e.g. Jeff Bezos' Regret Minimization Framework, Asymmetric Risk-Reward, SWOT Matrix, etc.)",
+  "frameworkAnalysis": "Application of the framework specifically to the user's current situation.",
   "biasName": "Name of the cognitive bias warning relevant to this decision",
   "biasDesc": "Explanation of the cognitive bias and psychological guidance.",
   "actions": ["Action item 1", "Action item 2", "Action item 3"]
-}`;
+}
+Ensure detailedAnalysis has a comparative analysis for every criterion in the matrix.`;
 
         const userPrompt = `Input Data: ${JSON.stringify(payload)}`;
 
@@ -1088,6 +1723,30 @@ Please output your analysis in the following strict JSON format, containing no o
         const res = JSON.parse(cleanedText);
 
         el.verdictSummary.textContent = res.summary;
+        
+        // Render Detailed Criteria Analysis Section
+        el.criteriaAnalysisList.innerHTML = '';
+        if (res.detailedAnalysis && res.detailedAnalysis.length > 0) {
+            res.detailedAnalysis.forEach(item => {
+                const div = document.createElement('div');
+                div.className = 'criteria-analysis-item';
+                div.innerHTML = `
+                    <div class="criteria-analysis-title">
+                        <i class="fa-solid fa-check-double"></i> <span>${item.criterion}</span>
+                    </div>
+                    <div class="criteria-analysis-text">${item.analysis}</div>
+                `;
+                el.criteriaAnalysisList.appendChild(div);
+            });
+            el.criteriaAnalysisSection.style.display = 'block';
+        } else {
+            el.criteriaAnalysisSection.style.display = 'none';
+        }
+        
+        // Render decision framework box
+        el.frameworkName.textContent = res.frameworkName || "Strategic Framework";
+        el.frameworkAnalysis.textContent = res.frameworkAnalysis || "";
+        
         el.biasAlert.innerHTML = `<strong>${res.biasName}</strong>: ${res.biasDesc}`;
         
         el.actionList.innerHTML = '';
@@ -1114,8 +1773,12 @@ function restartApp() {
     STATE.scores = {};
     STATE.currentStep = 1;
     STATE.chatAnswers = {};
+    STATE.isAiDraft = false;
+    STATE.dynamicQuestions = null;
     
     el.inputDilemma.value = '';
+    el.inputContext.value = '';
+    el.wizardAiBadge.classList.add('hidden');
     
     // Reset defaults based on language
     if (STATE.lang === 'ko') {
@@ -1248,6 +1911,30 @@ async function fetchServerVerdict(finalScores, winner) {
         const res = await response.json();
 
         el.verdictSummary.textContent = res.summary;
+
+        // Render Detailed Criteria Analysis Section
+        el.criteriaAnalysisList.innerHTML = '';
+        if (res.detailedAnalysis && res.detailedAnalysis.length > 0) {
+            res.detailedAnalysis.forEach(item => {
+                const div = document.createElement('div');
+                div.className = 'criteria-analysis-item';
+                div.innerHTML = `
+                    <div class="criteria-analysis-title">
+                        <i class="fa-solid fa-check-double"></i> <span>${item.criterion}</span>
+                    </div>
+                    <div class="criteria-analysis-text">${item.analysis}</div>
+                `;
+                el.criteriaAnalysisList.appendChild(div);
+            });
+            el.criteriaAnalysisSection.style.display = 'block';
+        } else {
+            el.criteriaAnalysisSection.style.display = 'none';
+        }
+        
+        // Render decision framework box
+        el.frameworkName.textContent = res.frameworkName || "Strategic Framework";
+        el.frameworkAnalysis.textContent = res.frameworkAnalysis || "";
+        
         el.biasAlert.innerHTML = `<strong>${res.biasName}</strong>: ${res.biasDesc}`;
         
         el.actionList.innerHTML = '';
@@ -1306,11 +1993,14 @@ async function fetchLocalAiVerdict(finalScores, winner) {
 
         const systemPrompt = `You are an expert AI consulting assistant specialized in human decision psychology.
 Analyze the user's dilemma, options, criteria scores, weights, and interview answers, and provide an insightful final recommendation report.
+Be analytical, precise, and decisive. Do not sit on the fence—deliver a clear recommendation.
 CRITICAL: You must write the report in ${payload.language}.
 
 Please output your analysis in the following strict JSON format, containing no other text:
 {
   "summary": "Detailed final analysis text explaining why the winner is optimal based on the weights.",
+  "frameworkName": "Strategic framework name used (e.g. Jeff Bezos' Regret Minimization Framework, Asymmetric Risk-Reward, SWOT Matrix, etc.)",
+  "frameworkAnalysis": "Application of the framework specifically to the user's current situation.",
   "biasName": "Name of the cognitive bias warning relevant to this decision",
   "biasDesc": "Explanation of the cognitive bias and psychological guidance.",
   "actions": ["Action item 1", "Action item 2", "Action item 3"]
@@ -1330,6 +2020,11 @@ Please output your analysis in the following strict JSON format, containing no o
         const res = JSON.parse(cleanText);
 
         el.verdictSummary.textContent = res.summary;
+        
+        // Render decision framework box
+        el.frameworkName.textContent = res.frameworkName || "Strategic Framework";
+        el.frameworkAnalysis.textContent = res.frameworkAnalysis || "";
+        
         el.biasAlert.innerHTML = `<strong>${res.biasName}</strong>: ${res.biasDesc}`;
         
         el.actionList.innerHTML = '';
@@ -1363,4 +2058,167 @@ function cleanJsonString(text) {
         clean = clean.substring(0, clean.length - 3);
     }
     return clean.trim();
+}
+
+// ----------------------------------------------------
+// LG Intranet Bypass Methods (Direct Gemini API calls)
+// ----------------------------------------------------
+
+async function fetchGeminiSetupChat(forceFinish) {
+    const userMessages = setupChatHistory.filter(m => m.role === 'user');
+    const isFinalTurn = forceFinish || (userMessages.length >= 3);
+
+    const systemPrompt = `You are a world-class strategic decision consultant and senior psychologist.
+You are helping the user co-create their decision matrix (Options, Criteria, Weights 1-5, Scores 1-10) for their dilemma.
+Keep the conversation engaging, analytical, and supportive.
+
+Your current mode: ${isFinalTurn ? 'FINAL_REPORT_MODE' : 'DIALOGUE_MODE'}.
+
+Language to use: ${STATE.lang === 'ko' ? 'Korean' : 'English'}.
+
+${isFinalTurn ? `
+[FINAL_REPORT_MODE]
+The dialogue is complete. You must finalize the matrix and write a detailed premium consultation report.
+You must output a JSON object in this format:
+{
+  "reply": "모든 분석이 완료되었습니다. 아래 버튼을 눌러 최종 처방 대시보드를 확인하세요.",
+  "isFinished": true,
+  "currentMatrix": {
+    "options": ["Option A", "Option B"],
+    "criteria": [
+      {"name": "Criterion 1", "weight": 4},
+      {"name": "Criterion 2", "weight": 3}
+    ],
+    "scores": {
+      "Criterion 1": {"Option A": 8, "Option B": 5},
+      "Criterion 2": {"Option A": 4, "Option B": 9}
+    }
+  },
+  "finalReport": {
+    "summary": "Deep overall strategic advice explaining why the winner is optimal, addressing psychological conflicts and subconscious values.",
+    "detailedAnalysis": [
+      {
+        "criterion": "Criterion Name 1",
+        "analysis": "Detailed comparison of how the options score on this criterion and why. CRITICAL: The analysis for each criterion must be extremely detailed, concrete, and rich in realistic context. You must not merely repeat the scores or say one option is better. You must draw upon your vast knowledge base to provide specific factual or highly plausible details (e.g. if dilemma is travel: compare options using concrete local delicacies like Yeosu's marinated crab vs. Tongyeong's sea squirt bibimbap, specific transit methods like KTX travel times vs. driving routes, and estimated budget ranges or lodging costs; if dilemma is career: compare typical salary numbers, growth outlooks, commute paths, or work hours). Each criterion comparison must be a full, rich paragraph of 3-5 highly detailed sentences."
+      }
+    ],
+    "frameworkName": "Jeff Bezos' Regret Minimization Framework",
+    "frameworkAnalysis": "Application of the framework to this specific decision.",
+    "biasName": "Sunk Cost Fallacy",
+    "biasDesc": "Explanation of bias warning and psychological advice.",
+    "actions": [
+      "Immediate action (within 24 hours)",
+      "Medium term action (within 48 hours)",
+      "Longer term action (within 72 hours)"
+    ]
+  }
+}
+Generate 2 to 4 options and 3 to 5 criteria. Weights must be integers 1-5. Scores must be integers 1-10.
+Ensure detailedAnalysis has a comparative analysis for EVERY criterion in the criteria list.`
+: `
+[DIALOGUE_MODE]
+You are asking the next question to refine the matrix. Do not generate the final report yet.
+Suggest 2-3 Options and 3-4 Criteria based on the dilemma, and update them dynamically in currentMatrix as the conversation progresses.
+In each turn, ask ONE specific, dilemma-relevant question (e.g., clarifying priorities or trade-offs) and offer 2-3 quick answers.
+You must output a JSON object in this format:
+{
+  "reply": "Conversational reply acknowledging user's input, explaining the current thoughts, and asking the next question.",
+  "suggestedOptions": ["Quick reply 1", "Quick reply 2"],
+  "currentMatrix": {
+    "options": ["Option A", "Option B"],
+    "criteria": [
+      {"name": "Criterion 1", "weight": 4},
+      {"name": "Criterion 2", "weight": 3}
+    ],
+    "scores": {
+      "Criterion 1": {"Option A": 8, "Option B": 5},
+      "Criterion 2": {"Option A": 4, "Option B": 9}
+    }
+  },
+  "isFinished": false
+}
+Generate initial options/criteria on the first turn (when history is empty) and refine them on subsequent turns based on user input. Weights must be integers 1-5, scores 1-10.`
+}
+
+Output ONLY the JSON object. Do not wrap in markdown.`;
+
+    const contents = [{
+        parts: [{ text: `${systemPrompt}\n\nDilemma: ${STATE.dilemma}\nContext: ${STATE.context || 'None'}` }]
+    }];
+
+    setupChatHistory.forEach(msg => {
+        contents.push({
+            role: msg.role === 'user' ? 'user' : 'model',
+            parts: [{ text: msg.content }]
+        });
+    });
+
+    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${STATE.geminiApiKey}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+            contents: contents,
+            generationConfig: {
+                responseMimeType: "application/json"
+            }
+        })
+    });
+
+    if (!response.ok) throw new Error('Gemini API Setup Chat request failed');
+    const resData = await response.json();
+    const rawText = resData.candidates[0].content.parts[0].text;
+    const cleanText = cleanJsonString(rawText);
+    return JSON.parse(cleanText);
+}
+
+async function fetchGeminiContinuousChat(message) {
+    const systemPrompt = `You are a world-class strategic decision consultant and senior psychologist.
+The user has completed their decision cockpit matrix and is asking questions about the final report, matrix values, or trade-offs.
+
+Dilemma: "${STATE.dilemma}"
+Matrix Data: ${JSON.stringify({
+        options: STATE.options,
+        criteria: STATE.criteria,
+        scores: STATE.scores
+    })}
+
+Your goal is to provide a deep, highly helpful, and analytical response in markdown format. 
+Answer their specific query, explain underlying trade-offs, and suggest alternatives or modifications if requested.
+Do not sit on the fence—give clear, professional guidance.
+
+Write your response in ${STATE.lang === 'ko' ? 'Korean' : 'English'}.
+You must output a JSON object in this format:
+{
+  "reply": "Markdown formatted reply..."
+}
+Output ONLY the JSON.`;
+
+    const contents = [{
+        parts: [{ text: systemPrompt }]
+    }];
+
+    continuousChatHistory.forEach(msg => {
+        contents.push({
+            role: msg.role === 'user' ? 'user' : 'model',
+            parts: [{ text: msg.content }]
+        });
+    });
+
+    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${STATE.geminiApiKey}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+            contents: contents,
+            generationConfig: {
+                responseMimeType: "application/json"
+            }
+        })
+    });
+
+    if (!response.ok) throw new Error('Gemini API Continuous Chat request failed');
+    const resData = await response.json();
+    const rawText = resData.candidates[0].content.parts[0].text;
+    const cleanText = cleanJsonString(rawText);
+    const parsed = JSON.parse(cleanText);
+    return parsed.reply;
 }
